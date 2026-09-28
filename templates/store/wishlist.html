@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load store_tags %}
+
+{% block title %}Saved Items · T-MAX-OS{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <span class="text-xs font-bold uppercase tracking-widest text-gold-400">Wishlist</span>
+    <h1 class="mt-1 text-2xl font-black tracking-tight text-nv-100">Saved Items</h1>
+    <p class="mt-1 text-sm text-nv-500">
+      {% if products %}{{ products|length }} product{{ products|length|pluralize }} — no need to buy now, save for later.{% else %}<span data-i18n="cart.no_saved">Nothing saved yet.</span>{% endif %}
+    </p>
+  </div>
+  <a href="{% url 'store:product_list' %}" class="btn-outline !px-4 !py-2 text-sm">Browse Shop →</a>
+</div>
+
+{% if products %}
+<div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+  {% for product in products %}
+    {% include "store/_product_card.html" %}
+  {% endfor %}
+</div>
+{% else %}
+<div class="mt-16 grid place-items-center text-center">
+  <div class="max-w-sm">
+    <p class="text-6xl">💜</p>
+    <h2 class="mt-4 text-xl font-black text-nv-100">Your wishlist is empty</h2>
+    <p class="mt-2 text-sm text-nv-500">Tap the heart on any product to save it here — even if you're not buying yet.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

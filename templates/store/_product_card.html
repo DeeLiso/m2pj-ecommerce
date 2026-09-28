@@ -1,0 +1,79 @@
+{% load store_tags %}
+<div class="group card relative flex flex-col overflow-hidden transition-all duration-500 hover:border-gold-500/50 hover:shadow-[0_0_40px_-8px_rgba(212,175,55,0.45)] hover:-translate-y-1">
+  <a href="{{ product.get_absolute_url }}" class="block">
+    <div class="relative aspect-[3/4] overflow-hidden bg-nv-800">
+      {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy"
+             class="h-full w-full object-cover transition-all duration-700 group-hover:scale-110">
+      {% else %}
+        <div class="grid h-full w-full place-items-center bg-gradient-to-br from-nv-800 to-nv-750 text-nv-600">
+          <span class="text-5xl">📦</span>
+        </div>
+      {% endif %}
+      {% if product.on_sale %}
+        <span class="badge absolute left-3 top-3 bg-gradient-to-r from-red-500 to-red-600 text-white shadow-[0_4px_16px_-4px_rgba(239,68,68,0.6)]">-{{ product.discount_percent }}%</span>
+      {% endif %}
+      {% if not product.in_stock %}
+        <span class="absolute inset-0 grid place-items-center bg-nv-950/80 text-sm font-bold uppercase tracking-wide text-nv-400 backdrop-blur-sm" data-i18n="card.sold_out">Sold out</span>
+      {% endif %}
+      <!-- Subtle gold glow on hover -->
+      <div class="absolute inset-0 bg-gradient-to-t from-gold-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+    </div>
+  </a>
+  <div class="flex flex-1 flex-col p-4">
+    <span class="text-[11px] font-semibold uppercase tracking-wider text-gold-400">{{ product.category.name }}</span>
+    <a href="{{ product.get_absolute_url }}" class="mt-1 line-clamp-2 text-sm font-semibold text-nv-100 hover:text-gold-400 transition-colors">{{ product.name }}</a>
+    <div class="mt-3 flex items-end justify-between">
+      <div>
+        <p class="text-base font-black text-nv-100 sm:text-lg">{{ product.price|mmk }}</p>
+        {% if product.on_sale %}
+          <p class="text-xs text-nv-500 line-through">{{ product.compare_at_price|mmk }}</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="mt-auto pt-3">
+      <div class="mb-3 flex items-center justify-between">
+        <div class="js-rating rating-stars" data-product="{{ product.id }}"
+             data-avg="{% if product.average_rating %}{{ product.average_rating }}{% endif %}"
+             data-user="{{ user_ratings|get_item:product.id }}"
+             data-count="{{ product.rating_count }}">
+          {% for i in "12345" %}
+          <button type="button" class="rating-star p-0.5 text-nv-600 transition-colors" data-value="{{ forloop.counter }}"
+                  aria-label="Rate {{ forloop.counter }} star{{ forloop.counter|pluralize }}" title="Rate {{ forloop.counter }} star{{ forloop.counter|pluralize }}">
+            <svg class="pointer-events-none h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+          </button>
+          {% endfor %}
+          <span class="rating-text ml-1 text-[10px] font-semibold text-nv-500"></span>
+        </div>
+        <div class="flex items-center gap-1">
+          <button type="button" class="js-wishlist grid h-7 w-7 place-items-center rounded-lg text-nv-500 transition-colors"
+                  data-product="{{ product.id }}"
+                  data-saved="{% if product.id in wishlist_ids %}1{% else %}0{% endif %}"
+                  aria-label="Save" title="Save" data-i18n-aria="card.save" data-i18n-title="card.save">
+            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </button>
+          <button type="button" class="js-share grid h-7 w-7 place-items-center rounded-lg text-nv-500 hover:text-gold-400 transition-colors"
+                  data-url="{{ product.get_absolute_url }}" aria-label="Share" title="Share">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-12 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      {% if product.in_stock %}
+        <form action="{% url 'store:cart_add' product.id %}" method="post" class="flex gap-2">
+          {% csrf_token %}
+          <input type="hidden" name="quantity" value="1">
+          <button type="submit" class="btn-primary w-full !px-3 !py-2 !text-xs" data-i18n="card.add_to_cart">Add to Cart</button>
+        </form>
+      {% else %}
+        <a href="{{ product.get_absolute_url }}" class="btn-outline w-full !px-3 !py-2 !text-xs text-center" data-i18n="card.view_details">View Details</a>
+      {% endif %}
+    </div>
+  </div>
+</div>

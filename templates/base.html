@@ -1,0 +1,341 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}T-MAX-OS{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="flex min-h-screen flex-col bg-nv-950 text-nv-300">
+  <!-- Announcement bar -->
+  <div class="bg-nv-900 border-b border-white/5 text-gold-300">
+    <div
+      class="mx-auto flex max-w-7xl items-center justify-center gap-2 px-4 py-2 text-center text-xs font-semibold tracking-wide">
+      <span class="hidden sm:inline">⚡</span>
+      FREE SHIPPING on orders over 100,000 Ks · 30-day returns · Nationwide delivery
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="mx-auto max-w-7xl px-4">
+      <div class="flex h-16 items-center justify-between gap-2 sm:gap-4">
+        <!-- Brand -->
+        <a href="{% url 'store:home' %}" class="flex shrink-0 items-center gap-2">
+          <span
+            class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 text-base font-black text-nv-950">T</span>
+          <span class="hidden text-xl font-black tracking-tight text-nv-100 sm:inline">T-MAX<span
+              class="text-gold-400">-OS</span></span>
+        </a>
+
+        <!-- Search (desktop) -->
+        <form action="{% url 'store:product_list' %}" method="get" class="hidden flex-1 max-w-xl md:block">
+          <div class="relative">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search products, brands, categories..."
+              class="form-input rounded-full pl-10" data-i18n-placeholder="search.placeholder">
+            <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-nv-500" fill="none"
+              stroke="currentColor" viewBox="0 0 24 24">
+              <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
+            </svg>
+          </div>
+        </form>
+
+        <!-- Language toggle -->
+        <button id="langToggle" aria-label="Switch language" title="Switch language" data-i18n-aria="nav.lang" data-i18n-title="nav.lang"
+          class="nav-action group shrink-0">
+          <svg class="h-5 w-5 text-nv-400 group-hover:text-gold-400 transition-colors" fill="none"
+            stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+              d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0c2.5 0 4.5-4 4.5-9S14.5 3 12 3 7.5 7 7.5 12 9.5 21 12 21Zm9-9H3" />
+          </svg>
+        </button>
+
+        <!-- Actions -->
+        <nav class="nav-shell flex shrink-0 items-center gap-1">
+          <a href="{% url 'store:product_list' %}"
+            class="nav-action group {% if request.path == '/shop/' %}nav-action-active{% endif %}" aria-label="Shop"
+            title="Shop" data-i18n-aria="nav.shop" data-i18n-title="nav.shop">
+            <svg class="h-5 w-5 text-nv-400 group-hover:text-gold-400 transition-colors" fill="none"
+              stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                d="M6 8h12l1 13H5L6 8Zm3 0V6a3 3 0 0 1 6 0v2" />
+            </svg>
+            <span class="nav-tooltip" data-i18n="nav.shop">Shop</span>
+          </a>
+
+          {% if user.is_authenticated %}
+          <div class="relative group">
+            <button
+              class="nav-user group flex items-center gap-1 rounded-xl px-1.5 py-1 text-sm font-semibold text-nv-300 hover:bg-white/5 sm:gap-2 sm:px-2"
+              id="userMenuBtn">
+              <span
+                class="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-gold-400 to-gold-600 text-sm font-bold text-nv-950">
+                {{ user.username|make_list|first|upper }}
+              </span>
+              <span class="hidden lg:block">{{ user.username }}</span>
+              <svg class="h-4 w-4 text-nv-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div id="userMenu"
+              class="invisible absolute right-0 z-50 mt-2 w-52 origin-top-right scale-95 rounded-xl border border-white/10 bg-nv-850/90 p-1 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-all group-hover:visible group-hover:scale-100 group-hover:opacity-100">
+              <a href="{% url 'accounts:profile' %}"
+                class="block rounded-lg px-4 py-2 text-sm text-nv-300 hover:bg-white/5 hover:text-gold-300">My
+                Profile</a>
+              <a href="{% url 'store:order_list' %}"
+                class="block rounded-lg px-4 py-2 text-sm text-nv-300 hover:bg-white/5 hover:text-gold-300">My
+                Orders</a>
+              {% if user.is_staff %}
+              <a href="{% url 'store:admin_dashboard' %}"
+                class="block rounded-lg px-4 py-2 text-sm text-nv-300 hover:bg-white/5 hover:text-gold-300">Admin
+                Dashboard</a>
+              <a href="{% url 'admin:index' %}"
+                class="block rounded-lg px-4 py-2 text-sm text-nv-300 hover:bg-white/5 hover:text-gold-300">Django
+                Admin</a>
+              {% endif %}
+              <div class="my-1 border-t border-white/10"></div>
+              <form action="{% url 'accounts:logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit"
+                  class="w-full rounded-lg px-4 py-2 text-left text-sm font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300">Sign
+                  out</button>
+              </form>
+            </div>
+          </div>
+          {% else %}
+          <a href="{% url 'accounts:login' %}"
+            class="nav-action group {% if request.path == '/accounts/login/' %}nav-action-active{% endif %}"
+            aria-label="Sign in" title="Sign in">
+            <svg class="h-5 w-5 text-nv-400 group-hover:text-gold-400 transition-colors" fill="none"
+              stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5m5 5H3" />
+            </svg>
+            <span class="nav-tooltip" data-i18n="nav.signin">Sign in</span>
+          </a>
+          <a href="{% url 'accounts:register' %}"
+            class="nav-action group {% if request.path == '/accounts/register/' %}nav-action-active{% endif %}"
+            aria-label="Register" title="Register">
+            <svg class="h-5 w-5 text-nv-400 group-hover:text-gold-400 transition-colors" fill="none"
+              stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                d="M15 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m8-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-1v6m3-3h-6" />
+            </svg>
+            <span class="nav-tooltip" data-i18n="nav.register">Register</span>
+          </a>
+          {% endif %}
+
+<a href="{% url 'store:wishlist' %}"
+            class="nav-action group relative {% if request.path == '/wishlist/' %}nav-action-active{% endif %}"
+            aria-label="Saved" title="Saved">
+            <svg class="h-5 w-5 text-nv-400 group-hover:text-gold-400 transition-colors" fill="currentColor"
+              viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <span class="nav-tooltip" data-i18n="nav.saved">Saved</span>
+            {% if wishlist_count %}
+            <span data-wishlist-count
+              class="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-gradient-to-br from-red-400 to-red-600 px-0.5 text-[10px] font-bold text-white">
+              {{ wishlist_count }}</span>
+            {% else %}
+            <span data-wishlist-count class="hidden" aria-hidden="true"></span>
+            {% endif %}
+          </a>
+
+          <a href="{% url 'store:cart_detail' %}"
+            class="nav-action group relative {% if request.path == '/cart/' %}nav-action-active{% endif %}"
+            aria-label="Cart" title="Cart">
+            <svg class="h-5 w-5 text-nv-400 group-hover:text-gold-400 transition-colors" fill="none"
+              stroke="currentColor" viewBox="0 0 24 24">
+              <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.3 4.6a1 1 0 00.9 1.4h12.8M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z" />
+            </svg>
+            <span class="nav-tooltip" data-i18n="nav.cart">Cart</span>
+            {% if cart_count %}
+            <span
+              class="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-gradient-to-br from-gold-400 to-gold-600 px-0.5 text-[10px] font-bold text-nv-950">
+              {{ cart_count }}</span>
+            {% endif %}
+          </a>
+        </nav>
+      </div>
+
+      <!-- Mobile search -->
+      <form action="{% url 'store:product_list' %}" method="get" class="pb-3 md:hidden">
+        <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search products..."
+          class="form-input rounded-full" data-i18n-placeholder="search.placeholder">
+      </form>
+    </div>
+  </header>
+
+  <!-- Messages -->
+  <div class="mx-auto w-full max-w-7xl px-4 pt-4">
+    {% if messages %}
+    <div class="space-y-2">
+      {% for message in messages %}
+      <div
+        class="flex items-center justify-between gap-4 rounded-xl border px-4 py-3 text-sm font-medium
+                      {% if message.tags == 'success' %}border-emerald-500/30 bg-emerald-500/10 text-emerald-300{% elif message.tags == 'error' %}border-red-500/30 bg-red-500/10 text-red-300{% else %}border-gold-500/30 bg-gold-500/10 text-gold-300{% endif %}">
+        <span>{{ message }}</span>
+        <button onclick="this.parentElement.remove()"
+          class="opacity-50 hover:opacity-100 text-nv-400 hover:text-nv-200">✕</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Content -->
+  <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-12 border-t border-white/5 bg-nv-900 text-nv-400">
+    <div class="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
+      <div>
+        <a href="{% url 'store:home' %}" class="flex items-center gap-2">
+          <span
+            class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 text-base font-black text-nv-950">T</span>
+          <span class="text-xl font-black text-nv-100">T-MAX<span class="text-gold-400">-OS</span></span>
+        </a>
+        <p class="mt-4 text-sm leading-relaxed text-nv-500" data-i18n="footer.about.text">
+          Your one-stop shop for premium tech, fashion and lifestyle. Fast, reliable, nationwide.
+        </p>
+      </div>
+      <div>
+        <h4 class="font-semibold text-nv-100" data-i18n="footer.shop.title">Shop</h4>
+        <ul class="mt-4 space-y-2 text-sm">
+          <li><a href="{% url 'store:product_list' %}" class="hover:text-gold-400 transition-colors" data-i18n="footer.all_products">All Products</a>
+          </li>
+          <li><a href="{% url 'store:product_list' %}?sort=price_asc"
+              class="hover:text-gold-400 transition-colors" data-i18n="footer.deals">Deals</a></li>
+          <li><a href="{% url 'store:product_list' %}?featured=1"
+              class="hover:text-gold-400 transition-colors" data-i18n="footer.featured">Featured</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold text-nv-100" data-i18n="footer.account.title">Account</h4>
+        <ul class="mt-4 space-y-2 text-sm">
+          <li><a href="{% url 'accounts:profile' %}" class="hover:text-gold-400 transition-colors" data-i18n="footer.profile">My Profile</a></li>
+          <li><a href="{% url 'store:order_list' %}" class="hover:text-gold-400 transition-colors" data-i18n="footer.orders">Order History</a>
+          </li>
+          <li><a href="{% url 'store:cart_detail' %}" class="hover:text-gold-400 transition-colors" data-i18n="footer.cart">Cart</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold text-nv-100" data-i18n="footer.support.title">Support</h4>
+        <ul class="mt-4 space-y-2 text-sm">
+          <li class="text-nv-500">📞 +95 9 123 456 789</li>
+          <li class="text-nv-500">✉️ support@tmax-os.com</li>
+          <li class="text-nv-500">📍 Yangon, Myanmar</li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/5">
+      <div
+        class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-5 text-xs text-nv-500 sm:flex-row">
+        <p>© {% now "Y" %} T-MAX-OS. Coded | DeeLiso</p>
+        <p>Secure payments · Visa · Mastercard · KBZ Pay · Wave Pay</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Auto-hide navbar on scroll down, reveal on ANY scroll up (from anywhere)
+    const siteHeader = document.querySelector('.site-header');
+    let lastScrollY = window.scrollY;
+    let revealY = window.scrollY;
+    if (siteHeader) {
+      window.addEventListener('scroll', () => {
+        const y = window.scrollY;
+        if (y < lastScrollY || y <= 120) {
+          // Any upward scroll (or being near the top) brings the navbar back
+          siteHeader.classList.remove('header-hidden');
+          revealY = y;
+        } else if (y > lastScrollY && y - revealY > 100) {
+          // Only hide again once the user clearly scrolls down past the reveal point
+          siteHeader.classList.add('header-hidden');
+        }
+        lastScrollY = y;
+      }, { passive: true });
+    }
+
+    // Toggle user menu on click (mobile friendly)
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    const userMenu = document.getElementById('userMenu');
+    if (userMenuBtn && userMenu) {
+      userMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userMenu.classList.toggle('invisible');
+        userMenu.classList.toggle('scale-95');
+        userMenu.classList.toggle('scale-100');
+        userMenu.classList.toggle('opacity-0');
+        userMenu.classList.toggle('opacity-100');
+      });
+      document.addEventListener('click', (e) => {
+        if (!userMenu.contains(e.target) && !userMenuBtn.contains(e.target)) {
+          userMenu.classList.add('invisible');
+          userMenu.classList.add('scale-95');
+          userMenu.classList.remove('scale-100');
+          userMenu.classList.add('opacity-0');
+          userMenu.classList.remove('opacity-100');
+        }
+      });
+    }
+  </script>
+  <script src="{% static 'js/i18n.js' %}"></script>
+  <script src="{% static 'js/engagement.js' %}"></script>
+
+  <!-- Floating chat widget -->
+  <div id="chatWidget" class="fixed bottom-5 right-5 z-40">
+    <div id="chatPanel"
+      class="mb-3 hidden w-60 origin-bottom-right scale-95 flex-col gap-2 rounded-2xl border border-white/10 bg-nv-850/95 p-3 opacity-0 shadow-[0_16px_50px_rgba(0,0,0,0.5)] backdrop-blur transition-all duration-200">
+      <p class="px-1 pb-1 text-xs font-black uppercase tracking-wide text-gold-400" data-i18n="chat.title">Talk to us 💬</p>
+      <a href="{{ VIBER_LINK }}" target="_blank" rel="noopener"
+        class="flex items-center gap-3 rounded-xl bg-nv-800 px-3 py-2.5 text-sm font-semibold text-nv-100 transition hover:bg-nv-700">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-violet-500/20 text-base">📞</span> Viber</a>
+      <a href="{{ FACEBOOK_MESSENGER_URL }}" target="_blank" rel="noopener"
+        class="flex items-center gap-3 rounded-xl bg-nv-800 px-3 py-2.5 text-sm font-semibold text-nv-100 transition hover:bg-nv-700">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-500/20 text-base">💬</span> Messenger</a>
+      <a href="{{ WHATSAPP_LINK }}" target="_blank" rel="noopener"
+        class="flex items-center gap-3 rounded-xl bg-nv-800 px-3 py-2.5 text-sm font-semibold text-nv-100 transition hover:bg-nv-700">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500/20 text-base">🟢</span> WhatsApp</a>
+    </div>
+    <button id="chatToggle" aria-label="Open chat" title="Contact us"
+      class="ml-auto grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-gold-400 to-gold-600 text-nv-950 shadow-[0_8px_30px_-6px_rgba(212,175,55,0.7)] transition-transform hover:scale-105 active:scale-95">
+      <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.6 3.4 6l-.9 3.2 3.4-1.7c1 .3 2.1.5 3.1.5 5.5 0 10-3.6 10-8S17.5 3 12 3zm0 14c-1 0-2-.15-3-.4L7 18l.5-1.8C6.2 15.4 5 13.8 5 12c0-3 3.1-5.5 7-5.5s7 2.5 7 5.5-3.1 5.5-7 5.5z"/>
+      </svg>
+    </button>
+  </div>
+  <script>
+    const chatToggle = document.getElementById('chatToggle');
+    const chatPanel = document.getElementById('chatPanel');
+    if (chatToggle && chatPanel) {
+      chatToggle.addEventListener('click', () => {
+        chatPanel.classList.toggle('hidden');
+        void chatPanel.offsetWidth;
+        chatPanel.classList.toggle('flex');
+        chatPanel.classList.toggle('scale-95');
+        chatPanel.classList.toggle('scale-100');
+        chatPanel.classList.toggle('opacity-0');
+        chatPanel.classList.toggle('opacity-100');
+      });
+    }
+  </script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>

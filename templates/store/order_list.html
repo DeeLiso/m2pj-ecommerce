@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load store_tags %}
+
+{% block title %}My Orders · T-MAX-OS{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-3xl font-black tracking-tight text-nv-100" data-i18n="ord.my_orders">My Orders</h1>
+    <p class="mt-1 text-sm text-nv-500" data-i18n="ord.subtitle">Track and manage your purchases.</p>
+  </div>
+  <a href="{% url 'store:product_list' %}" class="btn-outline" data-i18n="ord.shop_more">Shop More</a>
+</div>
+
+{% if orders %}
+<div class="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-nv-850/50">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-nv-900/50 text-xs uppercase tracking-wide text-nv-500">
+        <tr>
+          <th class="px-5 py-4">Reference</th>
+          <th class="px-5 py-4">Date</th>
+          <th class="px-5 py-4" data-i18n="ord.items">Items</th>
+          <th class="px-5 py-4" data-i18n="cart.total">Total</th>
+          <th class="px-5 py-4" data-i18n="ord.payment">Payment</th>
+          <th class="px-5 py-4">Status</th>
+          <th class="px-5 py-4">Tracking</th>
+          <th class="px-5 py-4"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5">
+        {% for order in orders %}
+        <tr class="transition hover:bg-white/5">
+          <td class="px-5 py-4 font-mono text-xs font-bold text-nv-100">{{ order.reference }}</td>
+          <td class="px-5 py-4 text-nv-400">{{ order.created_at|date:"M d, Y" }}</td>
+          <td class="px-5 py-4 text-nv-400">{{ order.items.count }}</td>
+          <td class="px-5 py-4 font-black text-nv-100">{{ order.total|mmk }}</td>
+          <td class="px-5 py-4 text-nv-400">{{ order.get_payment_method_display }}</td>
+          <td class="px-5 py-4"><span class="badge {{ order.status|status_color }}">{{ order.get_status_display }}</span></td>
+          <td class="px-5 py-4">
+            <div class="w-32" title="Tracking progress">
+              <div class="flex gap-1">
+                {% for step, label in order.status_steps %}
+                <div class="h-1.5 flex-1 rounded-full {% if step <= order.status_level %}bg-gradient-to-r from-gold-400 to-gold-500{% else %}bg-nv-700{% endif %}"></div>
+                {% endfor %}
+              </div>
+              <p class="mt-1.5 text-[11px] text-nv-500">
+                {% if order.status == "cancelled" %}<span data-i18n="ord.cancelled">Cancelled</span>{% else %}{% for step, label in order.status_steps %}{% if step == order.status_level %}{{ label }}{% endif %}{% endfor %}{% endif %}
+                · {{ order.updated_at|date:"M d, H:i" }}
+              </p>
+            </div>
+          </td>
+          <td class="px-5 py-4 text-right">
+            <a href="{% url 'store:order_detail' order.reference %}" class="font-semibold text-gold-400 hover:text-gold-300 transition-colors" data-i18n="ord.track">Track →</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="mt-10 card p-16 text-center border border-white/10">
+  <p class="text-5xl">📦</p>
+  <h2 class="mt-4 text-xl font-black text-nv-100" data-i18n="ord.no_orders">No orders yet</h2>
+  <p class="mt-1 text-sm text-nv-500" data-i18n="ord.no_orders_text">Your order history will appear here.</p>
+  <a href="{% url 'store:product_list' %}" class="btn-primary mt-6" data-i18n="ord.start_shopping">Start Shopping</a>
+</div>
+{% endif %}
+{% endblock %}

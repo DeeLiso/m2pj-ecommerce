@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static store_tags %}
+
+{% block title %}T-MAX-OS | Premium E-Commerce Store{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="relative overflow-hidden rounded-3xl bg-nv-900 border border-white/5">
+  <div class="pointer-events-none absolute inset-0 opacity-40"
+    style="background-image: radial-gradient(circle at 20% 20%, rgba(212,175,55,.25), transparent 45%), radial-gradient(circle at 80% 70%, rgba(12,14,19,.6), transparent 50%);">
+  </div>
+  <div class="relative grid gap-8 px-6 py-16 sm:px-12 lg:grid-cols-2 lg:py-24">
+    <div class="flex flex-col justify-center">
+      <span class="badge w-fit bg-gold-500/15 text-gold-300 ring-1 ring-gold-500/30" data-i18n="home.hero.badge">🎉 New Season Sale · Up to 50%
+        off</span>
+      <h1 class="hero-title mt-5 text-4xl font-black leading-tight tracking-tight text-nv-100 sm:text-5xl lg:text-6xl">
+        <span data-i18n="home.hero.title.1">Gear Up.</span> <span class="text-gold-400"
+          data-i18n="home.hero.title.2">Level Up.</span><br><span data-i18n="home.hero.title.3">Shop the Latest.</span>
+      </h1>
+      <p class="mt-5 max-w-md text-base leading-relaxed text-nv-500" data-i18n="home.hero.text">
+        Discover premium tech, fashion and lifestyle from T-MAX-OS. Fast delivery across Myanmar with secure payments.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="{% url 'store:product_list' %}" class="btn-primary !px-8 !py-3 !text-base" data-i18n="home.hero.shop_now">Shop Now →</a>
+        <a href="{% url 'store:product_list' %}?sort=price_asc"
+          class="btn-outline !px-8 !py-3 !text-base" data-i18n="home.hero.view_deals">View Deals</a>
+      </div>
+      <div class="mt-10 flex flex-wrap gap-8 text-nv-200">
+        <div>
+          <p class="text-2xl font-black">10k+</p>
+          <p class="text-xs text-nv-500" data-i18n="home.hero.customers">Happy customers</p>
+        </div>
+        <div>
+          <p class="text-2xl font-black">500+</p>
+          <p class="text-xs text-nv-500" data-i18n="home.hero.products">Products</p>
+        </div>
+        <div>
+          <p class="text-2xl font-black">24h</p>
+          <p class="text-xs text-nv-500" data-i18n="home.hero.dispatch">Fast dispatch</p>
+        </div>
+      </div>
+    </div>
+    <div class="hidden lg:block">
+      <div class="rounded-2xl border border-white/10 bg-nv-850/50 p-2 backdrop-blur">
+        <img src="{% static 'images/hero.png' %}" alt="T-MAX-OS products"
+          class="aspect-[4/3] w-full rounded-xl object-cover" onerror="this.style.display='none'">
+        <div class="grid grid-cols-3 gap-2 p-1">
+          {% for p in new_arrivals|slice:":3" %}
+          <a href="{{ p.get_absolute_url }}" class="group">
+            <div class="aspect-square overflow-hidden rounded-lg bg-nv-800">
+              {% if p.image %}
+              <img src="{{ p.image.url }}" alt="{{ p.name }}"
+                class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+              {% else %}
+              <div class="grid h-full w-full place-items-center text-xs font-bold text-nv-600">{{
+                p.name|truncatechars:14 }}</div>
+              {% endif %}
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Category chips -->
+<section class="mt-12">
+  <div class="flex items-end justify-between">
+    <h2 class="text-2xl font-black tracking-tight text-nv-100" data-i18n="home.categories.title">Browse Categories</h2>
+    <a href="{% url 'store:product_list' %}" class="text-sm font-semibold text-gold-400 hover:text-gold-300 transition-colors" data-i18n="home.view_all">View all
+      →</a>
+  </div>
+  <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+    {% for cat in categories %}
+    <a href="{% url 'store:product_list' %}?category={{ cat.slug }}"
+      class="group card flex flex-col items-center p-4 text-center transition duration-300 hover:border-gold-500/50 hover:shadow-[0_12px_32px_-12px_rgba(212,175,55,0.4)]">
+      <div
+        class="grid h-12 w-12 place-items-center rounded-xl bg-nv-800 text-xl text-gold-400 transition group-hover:bg-gold-500/20 group-hover:text-gold-300">
+        {{ cat.name|first|upper }}
+      </div>
+      <p class="mt-3 text-sm font-semibold text-nv-100 line-clamp-1">{{ cat.name }}</p>
+    </a>
+    {% empty %}
+    <p class="text-sm text-nv-500">No categories yet.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Featured -->
+{% if featured %}
+<section class="mt-14">
+  <div class="flex items-end justify-between">
+    <h2 class="text-2xl font-black tracking-tight text-nv-100" data-i18n="home.featured.title">Featured Products</h2>
+    <a href="{% url 'store:product_list' %}" class="text-sm font-semibold text-gold-400 hover:text-gold-300 transition-colors" data-i18n="home.view_all">See all
+      →</a>
+  </div>
+  <div class="mt-5 grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {% for product in featured %}
+    {% include "store/_product_card.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- Promo banner -->
+<section class="mt-14 grid gap-4 lg:grid-cols-3">
+  <div class="rounded-2xl bg-gradient-to-br from-gold-500 to-gold-600 p-6 text-nv-950">
+    <p class="text-xs font-extrabold uppercase tracking-wider" data-i18n="home.sale.badge">Limited time</p>
+    <h3 class="mt-2 text-2xl font-black" data-i18n="home.sale.title">Flash Sale 🔥</h3>
+    <p class="mt-1 text-sm font-medium" data-i18n="home.sale.text">Metal & electronics up to 50% off. While stocks last.</p>
+    <a href="{% url 'store:product_list' %}?sort=price_asc"
+      class="mt-4 inline-flex rounded-lg bg-nv-950 px-4 py-2 text-sm font-bold text-gold-200 hover:bg-nv-900 transition-colors" data-i18n="home.sale.shop">Shop Sale</a>
+  </div>
+  <div class="rounded-2xl bg-gradient-to-br from-nv-900 to-nv-850 p-6 text-nv-100 border border-white/5">
+    <p class="text-xs font-extrabold uppercase tracking-wider text-gold-400" data-i18n="home.shipping.badge">Shipping</p>
+    <h3 class="mt-2 text-2xl font-black" data-i18n="home.shipping.title">Free Delivery</h3>
+    <p class="mt-1 text-sm text-nv-500" data-i18n="home.shipping.text">On all orders over 100,000 Ks, anywhere in Myanmar.</p>
+    <a href="{% url 'store:product_list' %}"
+      class="mt-4 inline-flex rounded-lg bg-gold-500 px-4 py-2 text-sm font-bold text-nv-950 hover:bg-gold-400 transition-colors" data-i18n="home.shipping.start">Start Shopping</a>
+  </div>
+  <div class="rounded-2xl bg-gradient-to-br from-nv-850 to-nv-800 p-6 border border-white/5">
+    <p class="text-xs font-extrabold uppercase tracking-wider text-gold-400" data-i18n="home.membership.badge">Membership</p>
+    <h3 class="mt-2 text-2xl font-black text-nv-100" data-i18n="home.membership.title">Join T-MAX-OS</h3>
+    <p class="mt-1 text-sm text-nv-500" data-i18n="home.membership.text">Create an account for faster checkout & order tracking.</p>
+    <a href="{% url 'accounts:register' %}"
+      class="mt-4 inline-flex rounded-lg bg-nv-900 px-4 py-2 text-sm font-bold text-nv-100 hover:bg-nv-850 transition-colors" data-i18n="home.membership.register">Register Free</a>
+  </div>
+</section>
+
+<!-- New arrivals -->
+{% if new_arrivals %}
+<section class="mt-14">
+  <div class="flex items-end justify-between">
+    <h2 class="text-2xl font-black tracking-tight text-nv-100" data-i18n="home.new_arrivals.title">New Arrivals</h2>
+    <a href="{% url 'store:product_list' %}?sort=newest"
+      class="text-sm font-semibold text-gold-400 hover:text-gold-300 transition-colors" data-i18n="home.newest_first">Newest first →</a>
+  </div>
+  <div class="mt-5 grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {% for product in new_arrivals %}
+    {% include "store/_product_card.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

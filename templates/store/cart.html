@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load store_tags %}
+
+{% block title %}Cart · T-MAX-OS{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-black tracking-tight text-nv-100" data-i18n="cart.title">Shopping Cart</h1>
+<p class="mt-1 text-sm text-nv-500">{{ cart_items|length }} item{{ cart_items|length|pluralize }} in your cart</p>
+
+{% if cart_items %}
+<div class="mt-6 grid gap-8 lg:grid-cols-3">
+  <!-- Items -->
+  <div class="space-y-4 lg:col-span-2">
+    {% for item in cart_items %}
+    <div class="card flex flex-col gap-4 p-4 sm:flex-row sm:items-center transition hover:border-gold-500/30">
+      <a href="{{ item.product.get_absolute_url }}" class="shrink-0">
+        {% if item.product.image %}
+          <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="h-24 w-24 rounded-xl object-cover">
+        {% else %}
+          <div class="grid h-24 w-24 place-items-center rounded-xl bg-nv-800 text-3xl text-nv-600">📦</div>
+        {% endif %}
+      </a>
+      <div class="min-w-0 flex-1">
+        <a href="{{ item.product.get_absolute_url }}" class="line-clamp-1 font-semibold text-nv-100 hover:text-gold-400 transition-colors">{{ item.product.name }}</a>
+        <p class="mt-0.5 text-xs text-nv-500">{{ item.product.category.name }} · {{ item.product.sku|default:"no-sku" }}</p>
+        <p class="mt-1.5 text-base font-black text-nv-100">{{ item.product.price|mmk }}</p>
+      </div>
+      <div class="flex items-center justify-between gap-4 sm:flex-col sm:items-end">
+        <form action="{% url 'store:cart_update' item.product.id %}" method="post" class="flex items-center rounded-xl border border-white/10 bg-nv-800/50">
+          {% csrf_token %}
+          <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" class="w-16 border-x border-white/10 bg-nv-800/50 py-2 text-center text-sm font-bold text-nv-100 outline-none focus:ring-0 focus:border-gold-500/50">
+          <button type="submit" class="px-3 py-2 text-xs font-semibold text-nv-400 hover:text-gold-400 transition-colors" data-i18n="cart.update">Update</button>
+        </form>
+        <form action="{% url 'store:cart_remove' item.product.id %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="text-sm font-semibold text-red-400 hover:text-red-300 transition-colors" data-i18n="cart.remove">✕ Remove</button>
+        </form>
+        <p class="text-base font-black text-nv-100">{{ item.line_total|mmk }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Summary -->
+  <div class="card h-fit p-6 lg:sticky lg:top-24">
+    <h2 class="text-lg font-black text-nv-100" data-i18n="cart.order_summary">Order Summary</h2>
+    <div class="mt-4 space-y-3 text-sm">
+      <div class="flex justify-between"><span class="text-nv-500" data-i18n="cart.subtotal">Subtotal</span><span class="font-semibold text-nv-200">{{ totals.subtotal|mmk }}</span></div>
+      <div class="flex justify-between">
+        <span class="text-nv-500" data-i18n="cart.shipping">Shipping</span>
+        <span class="font-semibold text-nv-200">{% if totals.shipping == 0 %}<span data-i18n="cart.free">FREE</span>{% else %}{{ totals.shipping|mmk }}{% endif %}</span>
+      </div>
+      <div class="flex justify-between"><span class="text-nv-500" data-i18n="cart.tax">Tax (5%)</span><span class="font-semibold text-nv-200">{{ totals.tax|mmk }}</span></div>
+      <div class="my-3 border-t border-white/10"></div>
+      <div class="flex justify-between text-lg font-black text-nv-100"><span data-i18n="cart.total">Total</span><span>{{ totals.total|mmk }}</span></div>
+    </div>
+
+    {% if totals.qualified_free_shipping %}
+      <p class="mt-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-xs font-semibold text-emerald-300">🎉 You've unlocked FREE shipping!</p>
+    {% else %}
+      <p class="mt-3 rounded-lg bg-gold-500/10 border border-gold-500/30 px-3 py-2 text-xs font-semibold text-gold-300">
+        Add <span class="font-black">{{ totals.remaining_for_free_shipping|mmk }}</span> more to unlock <span class="font-black">FREE shipping</span>.
+      </p>
+    {% endif %}
+
+    <a href="{% url 'store:checkout' %}" class="btn-primary mt-5 w-full !py-3" data-i18n="cart.checkout">Proceed to Checkout →</a>
+    <a href="{% url 'store:product_list' %}" class="btn-outline mt-3 w-full" data-i18n="cart.continue">Continue Shopping</a>
+    <p class="mt-4 text-center text-xs text-nv-500">🔒 Secure checkout · Visa · Mastercard · KBZ Pay · Wave Pay</p>
+  </div>
+</div>
+{% else %}
+<div class="mt-10 card p-16 text-center border border-white/10">
+  <p class="text-5xl">🛒</p>
+  <h2 class="mt-4 text-xl font-black text-nv-100" data-i18n="cart.empty">Your cart is empty</h2>
+  <p class="mt-1 text-sm text-nv-500" data-i18n="cart.empty_text">Looks like you haven't added anything yet.</p>
+  <a href="{% url 'store:product_list' %}" class="btn-primary mt-6" data-i18n="cart.shop_now">Start Shopping</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load store_tags %}
+
+{% block title %}Order Confirmed · T-MAX-OS{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-2xl">
+  <div class="card overflow-hidden text-center">
+    <div class="bg-emerald-500 px-6 py-12">
+      <div class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-white text-4xl">✅</div>
+      <h1 class="mt-5 text-2xl font-black text-white sm:text-3xl">Thank you! Order placed.</h1>
+      <p class="mt-2 text-emerald-100">A confirmation has been sent to <span class="font-semibold">{{ order.email }}</span></p>
+    </div>
+    <div class="p-6 sm:p-8">
+      <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Order reference</p>
+          <p class="mt-1 text-lg font-black text-slate-900">{{ order.reference }}</p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Order status</p>
+          <span class="badge mt-2 {{ order.status|status_color }}">{{ order.get_status_display }}</span>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Payment</p>
+          <p class="mt-1 text-lg font-black text-slate-900">{{ order.get_payment_method_display }}</p>
+        </div>
+      </div>
+
+      <div class="mt-6 rounded-xl bg-slate-100 p-4 text-left">
+        <p class="text-sm text-slate-600">Shipping to</p>
+        <p class="mt-1 text-sm font-semibold text-slate-900">{{ order.full_name }} · {{ order.address_line1 }}, {{ order.city }}, {{ order.country }}</p>
+      </div>
+
+      <div class="mt-6 overflow-hidden rounded-xl border border-slate-200">
+        <ul class="divide-y divide-slate-200">
+          {% for item in order.items %}
+          <li class="flex items-center justify-between gap-3 p-4">
+            <div class="flex items-center gap-3">
+              <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-slate-900 text-xs font-bold text-white">{{ item.quantity }}×</span>
+              <p class="text-sm font-semibold text-slate-900">{{ item.product_name }}</p>
+            </div>
+            <p class="text-sm font-black text-slate-900">{{ item.line_total|mmk }}</p>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="space-y-1.5 border-t border-slate-200 bg-slate-50 p-4 text-sm">
+          <div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span>{{ order.subtotal|mmk }}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Shipping</span><span>{% if order.shipping == 0 %}FREE{% else %}{{ order.shipping|mmk }}{% endif %}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Tax</span><span>{{ order.tax|mmk }}</span></div>
+          <div class="flex justify-between text-base font-black text-slate-900"><span>Total</span><span>{{ order.total|mmk }}</span></div>
+        </div>
+      </div>
+
+      <div class="mt-7 flex flex-wrap justify-center gap-3">
+        <a href="{% url 'store:order_detail' order.reference %}" class="btn-dark">Track / View Order</a>
+        <a href="{% url 'store:product_list' %}" class="btn-outline">Continue Shopping</a>
+      </div>
+      {% if not user.is_authenticated %}
+        <p class="mt-5 text-xs text-slate-400">Tip: <a href="{% url 'accounts:register' %}" class="font-semibold text-amber-600">Create an account</a> to view this order anytime.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

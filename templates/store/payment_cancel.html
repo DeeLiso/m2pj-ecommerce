@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Cancelled · T-MAX-OS{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-md">
+  <div class="card p-8 text-center">
+    <div class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-red-100 text-3xl">🛑</div>
+    <h1 class="mt-4 text-2xl font-black text-slate-900">Payment Cancelled</h1>
+    <p class="mt-2 text-sm text-slate-500">Your order <span class="font-semibold">{{ order.reference }}</span> has been cancelled. No payment was taken.</p>
+    <div class="mt-6 flex justify-center gap-3">
+      <a href="{% url 'store:checkout' %}" class="btn-primary">Try Again</a>
+      <a href="{% url 'store:product_list' %}" class="btn-outline">Continue Shopping</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

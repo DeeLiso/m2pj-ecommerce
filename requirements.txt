@@ -1,0 +1,8 @@
+Django==5.2
+Pillow>=10.0
+
+# --- Optional -- only needed when you enable real Stripe payments ---
+# stripe>=9.0
+
+# --- Optional -- only needed when you build Tailwind with npm ---
+# (otherwise use the precompiled static/css/tailwind.css)

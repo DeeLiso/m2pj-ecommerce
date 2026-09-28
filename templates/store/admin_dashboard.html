@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load store_tags %}
+
+{% block title %}Admin Dashboard · T-MAX-OS{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-3xl font-black tracking-tight text-nv-100">Admin Dashboard</h1>
+    <p class="mt-1 text-sm text-nv-500">Store overview for {{ user.username }}.</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'admin:index' %}" class="btn-outline">Open Django Admin ↗</a>
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+  <div class="card p-5">
+    <div class="flex items-center justify-between">
+      <p class="text-xs font-bold uppercase tracking-wide text-nv-500">Total Orders</p>
+      <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-gold-500/20 to-gold-600/20 text-lg">🧾</span>
+    </div>
+    <p class="mt-2 text-3xl font-black text-nv-100">{{ total_orders }}</p>
+  </div>
+  <div class="card p-5">
+    <div class="flex items-center justify-between">
+      <p class="text-xs font-bold uppercase tracking-wide text-nv-500">Paid Revenue</p>
+      <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-lg">💰</span>
+    </div>
+    <p class="mt-2 text-3xl font-black text-emerald-400">{{ paid_revenue|mmk }}</p>
+  </div>
+  <div class="card p-5">
+    <div class="flex items-center justify-between">
+      <p class="text-xs font-bold uppercase tracking-wide text-nv-500">Products</p>
+      <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/20 text-lg">📦</span>
+    </div>
+    <p class="mt-2 text-3xl font-black text-nv-100">{{ product_count }}</p>
+  </div>
+  <div class="card p-5">
+    <div class="flex items-center justify-between">
+      <p class="text-xs font-bold uppercase tracking-wide text-nv-500">Customers</p>
+      <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-sky-500/20 to-sky-600/20 text-lg">👥</span>
+    </div>
+    <p class="mt-2 text-3xl font-black text-nv-100">{{ user_count }}</p>
+  </div>
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-3">
+  <!-- Status breakdown -->
+  <div class="card p-6">
+    <h2 class="text-lg font-black text-nv-100">Orders by Status</h2>
+    <div class="mt-4 space-y-3">
+      {% for row in status_breakdown %}
+        <div class="flex items-center justify-between">
+          <span class="badge {{ row.status|status_color }} capitalize">{{ row.status }}</span>
+          <span class="text-sm font-bold text-nv-100">{{ row.count }}</span>
+        </div>
+      {% empty %}
+        <p class="text-sm text-nv-500">No orders yet.</p>
+      {% endfor %}
+    </div>
+    <div class="mt-5 rounded-xl bg-nv-900/50 border border-white/5 p-4">
+      <p class="text-xs font-semibold uppercase tracking-wide text-nv-500">Total revenue (all statuses)</p>
+      <p class="mt-1 text-xl font-black text-nv-100">{{ total_revenue|mmk }}</p>
+    </div>
+  </div>
+
+  <!-- Recent orders -->
+  <div class="card p-6 lg:col-span-2">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-black text-nv-100">Recent Orders</h2>
+      <a href="{% url 'admin:store_order_changelist' %}" class="text-sm font-semibold text-gold-400 hover:text-gold-300 transition-colors">Manage →</a>
+    </div>
+    <div class="mt-4 overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead class="text-xs uppercase tracking-wide text-nv-500">
+          <tr>
+            <th class="pb-3">Ref</th>
+            <th class="pb-3">Customer</th>
+            <th class="pb-3">Total</th>
+            <th class="pb-3">Status</th>
+            <th class="pb-3">Date</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          {% for order in recent_orders %}
+          <tr class="text-nv-300 hover:bg-white/5 transition-colors">
+            <td class="py-3 font-mono text-xs font-bold text-nv-100">{{ order.reference }}</td>
+            <td class="py-3">{{ order.full_name|truncatechars:18 }}</td>
+            <td class="py-3 font-black text-nv-100">{{ order.total|mmk }}</td>
+            <td class="py-3"><span class="badge {{ order.status|status_color }}">{{ order.get_status_display }}</span></td>
+            <td class="py-3 text-xs text-nv-500">{{ order.created_at|date:"M d, H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="py-8 text-center text-nv-500">No orders yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Low stock -->
+  <div class="card p-6 lg:col-span-3">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-black text-nv-100">Low Stock Alert (≤ 5 units)</h2>
+      <a href="{% url 'admin:store_product_changelist' %}" class="text-sm font-semibold text-gold-400 hover:text-gold-300 transition-colors">All products →</a>
+    </div>
+    {% if low_stock %}
+    <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {% for product in low_stock %}
+      <div class="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-nv-800 text-sm font-black text-red-400">{{ product.stock }}</span>
+        <div class="min-w-0">
+          <p class="truncate text-sm font-semibold text-nv-100">{{ product.name }}</p>
+          <p class="text-xs text-red-400">Only {{ product.stock }} left — restock soon.</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="mt-4 text-sm text-nv-500">All products are well stocked. 🎉</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

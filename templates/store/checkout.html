@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% load static store_tags %}
+
+{% block title %}Checkout · T-MAX-OS{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-black tracking-tight text-nv-100" data-i18n="co.checkout">Checkout</h1>
+
+<form method="post" class="mt-6 grid gap-8 lg:grid-cols-3">
+  {% csrf_token %}
+  <div class="space-y-6 lg:col-span-2">
+    <!-- Contact -->
+    <div class="card p-6">
+      <h2 class="text-lg font-black text-nv-100" data-i18n="co.contact">1 · Contact Details</h2>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="label" for="{{ form.full_name.id_for_label }}" data-i18n="co.full_name">Full name *</label>
+          {{ form.full_name }}
+          {{ form.full_name.errors }}
+        </div>
+        <div>
+          <label class="label" for="{{ form.email.id_for_label }}" data-i18n="co.email">Email *</label>
+          {{ form.email }}
+          {{ form.email.errors }}
+        </div>
+        <div>
+          <label class="label" for="{{ form.phone.id_for_label }}" data-i18n="co.phone">Phone</label>
+          {{ form.phone }}
+          {{ form.phone.errors }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Shipping -->
+    <div class="card p-6">
+      <h2 class="text-lg font-black text-nv-100" data-i18n="co.shipping">2 · Shipping Address</h2>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label class="label" data-i18n="co.address1">Address line 1 *</label>
+          {{ form.address_line1 }}
+          {{ form.address_line1.errors }}
+        </div>
+        <div class="sm:col-span-2">
+          <label class="label" data-i18n="co.address2">Address line 2</label>
+          {{ form.address_line2 }}
+          {{ form.address_line2.errors }}
+        </div>
+        <div>
+          <label class="label" data-i18n="co.city">City *</label>
+          {{ form.city }}
+          {{ form.city.errors }}
+        </div>
+        <div>
+          <label class="label" data-i18n="co.state">State / Region</label>
+          {{ form.state }}
+          {{ form.state.errors }}
+        </div>
+        <div>
+          <label class="label" data-i18n="co.postal">Postal code</label>
+          {{ form.postal_code }}
+          {{ form.postal_code.errors }}
+        </div>
+        <div>
+          <label class="label" data-i18n="co.country">Country</label>
+          {{ form.country }}
+          {{ form.country.errors }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment -->
+    <div class="card p-6">
+      <h2 class="text-lg font-black text-nv-100" data-i18n="co.payment">3 · Payment Method</h2>
+      <div class="mt-4 space-y-3">
+        {% for radio in form.payment_method %}
+          <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 p-4 transition has-[:checked]:border-gold-500 has-[:checked]:bg-gold-500/10">
+            {{ radio.tag }}
+            <span class="text-sm font-semibold text-nv-100">{{ radio.choice_label }}</span>
+          </label>
+        {% endfor %}
+        {{ form.payment_method.errors }}
+      </div>
+
+      <!-- Demo card fields -->
+      <div id="demoCardFields" class="mt-4">
+        <div class="rounded-xl bg-nv-800/50 border border-white/5 p-5">
+          <p class="text-xs font-bold uppercase tracking-wide text-nv-500">Demo card details</p>
+          <div class="mt-3 grid gap-3">
+            <input type="text" placeholder="4242 4242 4242 4242" class="form-input !bg-nv-900" readonly>
+            <div class="grid grid-cols-2 gap-3">
+              <input type="text" placeholder="MM / YY" class="form-input !bg-nv-900" readonly>
+              <input type="text" placeholder="CVC" class="form-input !bg-nv-900" readonly>
+            </div>
+            <p class="text-xs text-nv-500">🔒 This is a demo gateway — no real card is charged. No details needed; just submit.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wallet payment (KBZ Pay / Wave Money) -->
+      <div id="kbzFields" class="mt-4 hidden">
+        <div class="rounded-xl border border-gold-500/30 bg-gold-500/10 p-5">
+          <p class="text-sm font-bold text-nv-100">💛 Transfer to our KBZ Pay account</p>
+          <div class="mt-3 flex flex-wrap items-start gap-4">
+            <div class="qr-shell shrink-0 rounded-xl bg-white p-3 shadow-sm" data-qr-shell
+                 data-qr-method="KBZ Pay" data-qr-phone="{{ kbz_pay_number }}" data-qr-amount="{{ totals.total }}"></div>
+            <div class="min-w-0 flex-1">
+              <p class="text-2xl font-black tracking-tight text-nv-100">{{ kbz_pay_number }}</p>
+              <div class="mt-3 space-y-1.5 rounded-lg bg-nv-900/50 p-3 text-xs text-nv-500">
+                <p>1. Open your KBZ Pay app → Scan / Send Money → to <span class="font-semibold text-nv-200">{{ kbz_pay_number }}</span></p>
+                <p>2. Send exactly <span class="font-bold text-gold-300">{{ totals.total|mmk }}</span> and use your order reference as the note.</p>
+                <p>3. Enter the number you send from below — we'll confirm your payment within a few hours.</p>
+              </div>
+            </div>
+          </div>
+          <p class="mt-3 text-xs text-nv-500">📲 Scan the QR with your KBZ Pay app to pay {{ totals.total|mmk }} right away.</p>
+        </div>
+      </div>
+
+      <div id="waveFields" class="mt-4 hidden">
+        <div class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-5">
+          <p class="text-sm font-bold text-nv-100">💚 Transfer to our Wave Money account</p>
+          <div class="mt-3 flex flex-wrap items-start gap-4">
+            <div class="qr-shell shrink-0 rounded-xl bg-white p-3 shadow-sm" data-qr-shell
+                 data-qr-method="Wave Money" data-qr-phone="{{ wave_pay_number }}" data-qr-amount="{{ totals.total }}"></div>
+            <div class="min-w-0 flex-1">
+              <p class="text-2xl font-black tracking-tight text-nv-100">{{ wave_pay_number }}</p>
+              <div class="mt-3 space-y-1.5 rounded-lg bg-nv-900/50 p-3 text-xs text-nv-500">
+                <p>1. Open your Wave Money app → Scan / Transfer → to <span class="font-semibold text-nv-200">{{ wave_pay_number }}</span></p>
+                <p>2. Send exactly <span class="font-bold text-emerald-300">{{ totals.total|mmk }}</span> and use your order reference as the note.</p>
+                <p>3. Enter the number you send from below — we'll confirm your payment within a few hours.</p>
+              </div>
+            </div>
+          </div>
+          <p class="mt-3 text-xs text-nv-500">📲 Scan the QR with your Wave Money app to pay {{ totals.total|mmk }} right away.</p>
+        </div>
+      </div>
+
+      <div id="walletPhone" class="mt-4">
+        <label class="label" for="{{ form.payment_phone.id_for_label }}" data-i18n="co.wallet_phone_label">Your KBZ Pay / Wave Money number *</label>
+        {{ form.payment_phone }}
+        {{ form.payment_phone.errors }}
+        <p class="mt-1 text-xs text-nv-500" data-i18n="co.wallet_hint">The number you will transfer the payment from, so we can match it to your order.</p>
+      </div>
+
+      <div class="mt-4">
+        <label class="label" data-i18n="co.notes_label">Order notes (optional)</label>
+        {{ form.notes }}
+        {{ form.notes.errors }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Order summary -->
+  <aside class="lg:sticky lg:top-24 lg:self-start">
+    <div class="card p-6">
+      <h2 class="text-lg font-black text-nv-100" data-i18n="co.your_order">Your Order</h2>
+      <ul class="mt-4 max-h-64 space-y-3 overflow-y-auto pr-1">
+        {% for item in cart_items %}
+        <li class="flex items-center gap-3">
+          <div class="relative shrink-0">
+            {% if item.product.image %}
+              <img src="{{ item.product.image.url }}" class="h-14 w-14 rounded-lg object-cover" alt="{{ item.product.name }}">
+            {% else %}
+              <div class="grid h-14 w-14 place-items-center rounded-lg bg-nv-800 text-xl text-nv-600">📦</div>
+            {% endif %}
+            <span class="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br from-gold-400 to-gold-600 text-[10px] font-bold text-nv-950">{{ item.quantity }}</span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-semibold text-nv-100">{{ item.product.name }}</p>
+            <p class="text-xs text-nv-500">{{ item.product.price|mmk }}</p>
+          </div>
+          <p class="text-sm font-black text-nv-100">{{ item.line_total|mmk }}</p>
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="mt-5 space-y-2 border-t border-white/10 pt-4 text-sm">
+        <div class="flex justify-between"><span class="text-nv-500" data-i18n="cart.subtotal">Subtotal</span><span class="font-semibold text-nv-200">{{ totals.subtotal|mmk }}</span></div>
+        <div class="flex justify-between"><span class="text-nv-500" data-i18n="cart.shipping">Shipping</span><span class="font-semibold text-nv-200">{% if totals.shipping == 0 %}<span data-i18n="cart.free">FREE</span>{% else %}{{ totals.shipping|mmk }}{% endif %}</span></div>
+        <div class="flex justify-between"><span class="text-nv-500" data-i18n="cart.tax">Tax (5%)</span><span class="font-semibold text-nv-200">{{ totals.tax|mmk }}</span></div>
+        <div class="flex justify-between pt-2 text-lg font-black text-nv-100"><span data-i18n="cart.total">Total</span><span>{{ totals.total|mmk }}</span></div>
+      </div>
+      <button type="submit" class="btn-primary mt-5 w-full !py-3"><span data-i18n="co.place_order">Place Order · Pay</span> {{ totals.total|mmk }}</button>
+      {% if not user.is_authenticated %}
+        <p class="mt-3 text-center text-xs text-nv-500">Checkout as guest. <a href="{% url 'accounts:register' %}" class="font-semibold text-gold-400 hover:text-gold-300">Register</a> to track your orders.</p>
+      {% endif %}
+    </div>
+  </aside>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/qrcode.min.js' %}"></script>
+<script>
+  document.querySelectorAll('[data-qr-shell]').forEach((shell) => {
+    if (typeof QRCode === 'undefined') return;
+    const content = [
+      shell.dataset.qrMethod,
+      'Phone: ' + shell.dataset.qrPhone,
+      'Amount: ' + shell.dataset.qrAmount + ' Ks',
+    ].join('\n');
+    shell.innerHTML = '';
+    new QRCode(shell, { text: content, width: 132, height: 132, colorDark: '#0c0e13', colorLight: '#ffffff' });
+  });
+  const methods = document.querySelectorAll('input[name="payment_method"]');
+  const demoFields = document.getElementById('demoCardFields');
+  const kbzFields = document.getElementById('kbzFields');
+  const waveFields = document.getElementById('waveFields');
+  const walletPhone = document.getElementById('walletPhone');
+  function togglePayment() {
+    const chosen = Array.from(methods).find(r => r.checked);
+    const value = chosen ? chosen.value : '';
+    if (demoFields) demoFields.style.display = value === 'demo' ? 'block' : 'none';
+    if (kbzFields) kbzFields.classList.toggle('hidden', value !== 'kbz');
+    if (waveFields) waveFields.classList.toggle('hidden', value !== 'wave');
+    if (walletPhone) walletPhone.classList.toggle('hidden', !['kbz', 'wave'].includes(value));
+  }
+  methods.forEach(r => r.addEventListener('change', togglePayment));
+  togglePayment();
+</script>
+{% endblock %}
